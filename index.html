@@ -126,50 +126,82 @@
             log("All processing workflows completed.");
         }
 
-        // Format Generator for MDE (12 Fields)
+        // Format Generator for MDE (12 Fields matching Microsoft Sample)
         function downloadMDECSV(domains, filename) {
             const headers = ["IndicatorType", "IndicatorValue", "ExpirationTime", "Action", "Severity", "Title", "Description", "RecommendedActions", "RbacGroups", "Category", "MitreTechniques", "GenerateAlert"];
-            let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+            let csvLines = [headers.join(",")];
             
             domains.forEach(domain => {
-                const row = ["Url", domain, "", "Block", "High", "Typosquat Protection", "Automated blocklist match for protection", "Isolate and audit event", "", "CustomIndicator", "", "True"];
-                csvContent += row.map(val => `"${val.replace(/"/g, '""')}"`).join(",") + "\n";
+                const row = [
+                    "DomainName",                        // IndicatorType (Corrected value)
+                    domain,                              // IndicatorValue
+                    "",                                  // ExpirationTime
+                    "Block",                             // Action
+                    "High",                              // Severity
+                    "Typosquat Protection",              // Title
+                    "Automated blocklist match for protection", // Description
+                    "Isolate and audit event",           // RecommendedActions
+                    "",                                  // RbacGroups
+                    "None",                              // Category (Corrected value matching sample)
+                    "",                                  // MitreTechniques
+                    "true"                               // GenerateAlert (Unquoted literal)
+                ];
+                
+                // Formats properly according to MS requirements (Strings quoted, booleans/blanks unquoted)
+                const formattedRow = row.map(val => {
+                    if (val === "true" || val === "false" || val === "") return val;
+                    return `"${val.replace(/"/g, '""')}"`;
+                }).join(",");
+                
+                csvLines.push(formattedRow);
             });
-            triggerDownload(csvContent, filename);
+            
+            triggerDownload(csvLines.join("\n"), filename);
         }
 
-        // Format Generator for Tenant Allow/Block List (6 Fields matching the original PS script target)
+        // Format Generator for Tenant Allow/Block List (TABL matching original PS script target)
         function downloadTABLCSV(domains, filename) {
             const headers = ["Value", "Type", "Action", "ExpirationDate", "NeverExpire", "Notes"];
-            let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+            let csvLines = [headers.join(",")];
             
-            // Set default expiration to 30 days from today (Standard production baseline)
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + 30);
             const formattedDate = expirationDate.toISOString().split('T')[0];
 
             domains.forEach(domain => {
                 const row = [
-                    domain,             // Value
-                    "Domain",           // Type
-                    "Block",            // Action
-                    formattedDate,      // ExpirationDate (YYYY-MM-DD)
-                    "False",            // NeverExpire
+                    domain,         // Value
+                    "Domain",       // Type
+                    "Block",        // Action
+                    formattedDate,  // ExpirationDate (YYYY-MM-DD)
+                    "false",        // NeverExpire
                     "Automated DNSTwist Typosquat Protection Block" // Notes
                 ];
-                csvContent += row.map(val => `"${val.replace(/"/g, '""')}"`).join(",") + "\n";
+                
+                const formattedRow = row.map(val => {
+                    if (val === "true" || val === "false" || val === "") return val;
+                    return `"${val.replace(/"/g, '""')}"`;
+                }).join(",");
+                
+                csvLines.push(formattedRow);
             });
-            triggerDownload(csvContent, filename);
+            
+            triggerDownload(csvLines.join("\n"), filename);
         }
 
+        // Robust Browser Blob downloader handling high throughput flawlessly
         function triggerDownload(content, filename) {
-            const encodedUri = encodeURI(content);
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
     </script>
 </body>
