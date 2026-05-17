@@ -1,208 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNSTwist to Microsoft Security Export Tool</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-6">
-
-    <div class="max-w-3xl w-full bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <h1 class="text-3xl font-extrabold text-blue-400">DNSTwist Security Exporter</h1>
-                <p class="text-gray-400 text-sm mt-1">Generate typosquatting variations and export directly to Microsoft Security formats.</p>
-            </div>
-            <a href="https://github.com/jkerai1/DNSTwistToMDEIOC" target="_blank" class="bg-gray-700 hover:bg-gray-600 text-xs font-semibold px-3 py-2 rounded text-blue-400 border border-gray-600 flex items-center gap-1 transition">
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                Original Repo
-            </a>
-        </div>
-
-        <hr class="border-gray-700 my-4">
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold mb-2 text-gray-300">Target Domain</label>
-                <input id="targetDomain" type="text" placeholder="example.com" class="w-full bg-gray-700 border border-gray-600 rounded p-3 text-white focus:outline-none focus:border-blue-500">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-semibold mb-2 text-gray-300">Exclude/Whitelist Domains (Comma separated)</label>
-                <input id="whitelist" type="text" placeholder="legit-sub.example.com, safe.com" class="w-full bg-gray-700 border border-gray-600 rounded p-3 text-white focus:outline-none focus:border-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold mb-2 text-gray-300">Select Export Format Type</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <label class="flex items-center p-3 bg-gray-700 rounded border border-gray-600 cursor-pointer hover:bg-gray-650">
-                        <input type="radio" name="exportMode" value="mde" checked class="form-radio h-4 w-4 text-blue-600">
-                        <span class="ml-3 text-sm">
-                            <strong class="block text-white">MDE Custom Indicators</strong>
-                            <span class="text-xs text-gray-400">Endpoint/Network blocks (12 Columns)</span>
-                        </span>
-                    </label>
-                    <label class="flex items-center p-3 bg-gray-700 rounded border border-gray-600 cursor-pointer hover:bg-gray-650">
-                        <input type="radio" name="exportMode" value="tabl" class="form-radio h-4 w-4 text-blue-600">
-                        <span class="ml-3 text-sm">
-                            <strong class="block text-white">Tenant Allow/Block List (TABL)</strong>
-                            <span class="text-xs text-gray-400">Email/Spoofing protection (6 Columns)</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            <button onclick="processDomains()" class="w-full bg-blue-600 hover:bg-blue-500 transition font-bold py-3 px-4 rounded text-white shadow-lg mt-2">
-                Generate & Export Output
-            </button>
-        </div>
-
-        <div class="mt-6">
-            <h3 class="text-lg font-bold text-gray-300 mb-2">Execution Logs</h3>
-            <div id="terminal" class="bg-black p-4 rounded-lg font-mono text-xs text-green-400 h-40 overflow-y-auto border border-gray-900">
-                System initialization complete. Awaiting domain...
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function log(message) {
-            const term = document.getElementById('terminal');
-            term.innerHTML += `<br>[*] ${message}`;
-            term.scrollTop = term.scrollHeight;
-        }
-
-        function generateTwists(domain) {
-            const bits = domain.split('.');
-            const name = bits[0];
-            const tld = bits.slice(1).join('.');
-            const variants = new Set();
-            const qwerty = { 'a': 'qwsz', 'b': 'vghn', 'c': 'xdfv', 'd': 'ersfxc', 'e': 'wsdr', 'f': 'rtgvcd', 'g': 'tyhbvf', 'h': 'yujnbg', 'i': 'ujko', 'j': 'uikmnh', 'k': 'iolmj', 'l': 'opk', 'm': 'njk', 'n': 'bhjm', 'o': 'iklp', 'p': 'ol', 'q': 'wa', 'r': 'edft', 's': 'wedxza', 't': 'rfgy', 'u': 'yhji', 'v': 'cfgb', 'w': 'qase', 'x': 'zsdc', 'y': 'tghu', 'z': 'asx' };
-
-            for (let i = 0; i < name.length; i++) variants.add(name.slice(0, i) + name.slice(i + 1) + '.' + tld); // Omission
-            for (let i = 0; i < name.length; i++) variants.add(name.slice(0, i + 1) + name[i] + name.slice(i + 1) + '.' + tld); // Repetition
-            for (let i = 0; i < name.length; i++) { // Substitution
-                const char = name[i];
-                if (qwerty[char]) {
-                    for (let r of qwerty[char]) variants.add(name.slice(0, i) + r + name.slice(i + 1) + '.' + tld);
-                }
-            }
-            return Array.from(variants).filter(v => v !== domain);
-        }
-
-        function processDomains() {
-            const domainInput = document.getElementById('targetDomain').value.trim().toLowerCase();
-            const whitelistInput = document.getElementById('whitelist').value.split(',').map(d => d.trim().toLowerCase());
-            const selectedMode = document.querySelector('input[name="exportMode"]:checked').value;
-            
-            if (!domainInput) {
-                alert('Please enter a target domain.');
-                return;
-            }
-
-            document.getElementById('terminal').innerHTML = "[*] Launching generation process...";
-            let mutatedDomains = generateTwists(domainInput);
-            
-            // Filter Whitelist
-            mutatedDomains = mutatedDomains.filter(d => d && !whitelistInput.includes(d));
-            log(`Total permutations generated after filtering: ${mutatedDomains.length}`);
-
-            const BATCH_SIZE = 500;
-            let batchIndex = 1;
-
-            for (let i = 0; i < mutatedDomains.length; i += BATCH_SIZE) {
-                const chunk = mutatedDomains.slice(i, i + BATCH_SIZE);
-                
-                if (selectedMode === 'mde') {
-                    downloadMDECSV(chunk, `MDE-IOC-Batch-${batchIndex}.csv`);
-                } else {
-                    downloadTABLCSV(chunk, `TenantAllowBlockList-Batch-${batchIndex}.csv`);
-                }
-                
-                log(`Successfully generated and downloaded batch #${batchIndex} (${chunk.length} entries).`);
-                batchIndex++;
-            }
-            log("All processing workflows completed.");
-        }
-
-        // Format Generator for MDE (12 Fields matching Microsoft Sample)
-        function downloadMDECSV(domains, filename) {
-            const headers = ["IndicatorType", "IndicatorValue", "ExpirationTime", "Action", "Severity", "Title", "Description", "RecommendedActions", "RbacGroups", "Category", "MitreTechniques", "GenerateAlert"];
-            let csvLines = [headers.join(",")];
-            
-            domains.forEach(domain => {
-                const row = [
-                    "DomainName",                        // IndicatorType (Corrected value)
-                    domain,                              // IndicatorValue
-                    "",                                  // ExpirationTime
-                    "Block",                             // Action
-                    "High",                              // Severity
-                    "Typosquat Protection",              // Title
-                    "Automated blocklist match for protection", // Description
-                    "Isolate and audit event",           // RecommendedActions
-                    "",                                  // RbacGroups
-                    "None",                              // Category (Corrected value matching sample)
-                    "",                                  // MitreTechniques
-                    "true"                               // GenerateAlert (Unquoted literal)
-                ];
-                
-                // Formats properly according to MS requirements (Strings quoted, booleans/blanks unquoted)
-                const formattedRow = row.map(val => {
-                    if (val === "true" || val === "false" || val === "") return val;
-                    return `"${val.replace(/"/g, '""')}"`;
-                }).join(",");
-                
-                csvLines.push(formattedRow);
-            });
-            
-            triggerDownload(csvLines.join("\n"), filename);
-        }
-
-        // Format Generator for Tenant Allow/Block List (TABL matching original PS script target)
-        function downloadTABLCSV(domains, filename) {
-            const headers = ["Value", "Type", "Action", "ExpirationDate", "NeverExpire", "Notes"];
-            let csvLines = [headers.join(",")];
-            
-            const expirationDate = new Date();
-            expirationDate.setDate(expirationDate.getDate() + 30);
-            const formattedDate = expirationDate.toISOString().split('T')[0];
-
-            domains.forEach(domain => {
-                const row = [
-                    domain,         // Value
-                    "Domain",       // Type
-                    "Block",        // Action
-                    formattedDate,  // ExpirationDate (YYYY-MM-DD)
-                    "false",        // NeverExpire
-                    "Automated DNSTwist Typosquat Protection Block" // Notes
-                ];
-                
-                const formattedRow = row.map(val => {
-                    if (val === "true" || val === "false" || val === "") return val;
-                    return `"${val.replace(/"/g, '""')}"`;
-                }).join(",");
-                
-                csvLines.push(formattedRow);
-            });
-            
-            triggerDownload(csvLines.join("\n"), filename);
-        }
-
-        // Robust Browser Blob downloader handling high throughput flawlessly
-        function triggerDownload(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
-    </script>
-</body>
-</html>
+// Format Generator for MDE (12 Fields matching Microsoft Sample) - Configured for Informational / No Alerts
+function downloadMDECSV(domains, filename) {
+    const headers = ["IndicatorType", "IndicatorValue", "ExpirationTime", "Action", "Severity", "Title", "Description", "RecommendedActions", "RbacGroups", "Category", "MitreTechniques", "GenerateAlert"];
+    let csvLines = [headers.join(",")];
+    
+    domains.forEach(domain => {
+        const row = [
+            "DomainName",                        // IndicatorType
+            domain,                              // IndicatorValue
+            "",                                  // ExpirationTime
+            "Block",                             // Action
+            "Informational",                     // Severity (Changed from High to Informational)
+            "Typosquat Protection",              // Title
+            "Automated blocklist match for protection", // Description
+            "Isolate and audit event",           // RecommendedActions
+            "",                                  // RbacGroups
+            "None",                              // Category 
+            "",                                  // MitreTechniques
+            "false"                              // GenerateAlert (Changed from true to false)
+        ];
+        
+        // Formats properly according to MS requirements (Strings quoted, booleans/blanks unquoted)
+        const formattedRow = row.map(val => {
+            if (val === "true" || val === "false" || val === "") return val;
+            return `"${val.replace(/"/g, '""')}"`;
+        }).join(",");
+        
+        csvLines.push(formattedRow);
+    });
+    
+    triggerDownload(csvLines.join("\n"), filename);
+}
