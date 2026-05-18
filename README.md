@@ -8,6 +8,8 @@ Convert DNSTwist Results to MDE IOCs then turn them into TenantAllowBlockLists !
 
 Can block typosquatters, phishing attacks, fraud, and brand impersonation!
 
+> a lesser version is available as a github page which means you do not need to run any code, however it does not use full DNStwist logic so is inferior https://jkerai1.github.io/DNSTwistToMDEIOC/
+
 ![image](https://github.com/jkerai1/DNSTwistToMDEIOC/assets/55988027/d6c1f7f2-c72b-4b60-8519-8df07d3dc049)
 
 
